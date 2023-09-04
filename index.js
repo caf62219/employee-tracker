@@ -49,7 +49,7 @@ inquirer
 }
 
   const viewEmployees = () => {
-    const employees= 'SELECT employees.id, employees.first_name, employees.last_name, roles.title, departments.name as department, roles.salary, CONCAT (manager.first_name, manager.last_name) as manager, FROM employees JOIN roles ON employees.role_id = roles.id JOIN departments ON roles.department_id = departments.id Join employee as manager ON employees.manager_id = manager.id'
+    const employees= 'SELECT employees.id, employees.first_name, employees.last_name, roles.title, departments.name as department, roles.salary, CONCAT (manager.first_name, manager.last_name) as manager FROM employees JOIN roles ON employees.role_id = roles.id JOIN departments ON roles.department_id = departments.id LEFT Join employees as manager ON employees.manager_id = manager.id'
     db.query(employees, (error, response) => {
       if (error) throw error;
         console.table(response);
@@ -89,9 +89,9 @@ inquirer
       },
     ])
     .then((response)=> {
-    let newemployee= 'INSERT INTO roles () Values (?,?,?)'
+    let newEmployee= 'INSERT INTO employees () Values (?,?,?,?)'
     
-    db.query(department, (error, response) => {
+    db.query(newEmployee, (error, response) => {
       if (error) throw error;
         console.table(response);
         viewAllRoles();
@@ -120,7 +120,7 @@ inquirer
           if (answer.departmentTitle === 'New Department') {
             this.addDepartment()
           } else {
-            addNewRole(response);
+            addNewRole(answer);
           }
         })
     
