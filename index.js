@@ -32,14 +32,14 @@ inquirer
     if (response.toDo === "Add Employees") {
         addEmployees()
         };
-    if (response.toDo === "Update Employees Role") {
-        updateEmployeesRole()
-        };
     if (response.toDo === "Add role") {
         addRole()
         };
     if (response.toDo === "Add Department") {
         addDepartment()
+        };
+    if (response.toDo === "Update Employees Role") {
+        updateEmployeesRole()
         };
     if(response.toDo === "Exit") {
       db.end();
@@ -88,60 +88,77 @@ inquirer
         name: "lastName"
       },
     ])
-
-    const department= 'Select * from departments'
+    .then((response)=> {
+    let newemployee= 'INSERT INTO roles () Values (?,?,?)'
+    
     db.query(department, (error, response) => {
       if (error) throw error;
         console.table(response);
-        userQuestions();
+        viewAllRoles();
     })
-  };
-
-  const updateEmployeesRole = () => {
-    inquirer.prompt ([
-      {
-        type: 'input',
-        message: "What is the employee's first name?",
-        name: "firstName"
-      },
-      {
-        type: 'input',
-        message: "What is the employee's last name?",
-        name: "lastName"
-      },
-
-    ])
-
-    const department= 'Select * from departments'
-    db.query(department, (error, response) => {
-      if (error) throw error;
-        console.table(response);
-        userQuestions();
-    })
+  })
   };
 
   //adding a role 
   const addRole = () => {
-    inquirer.prompt ([
-      {
-        type: 'input',
-        message: "What is the employee's first name?",
-        name: "firstName"
-      },
-      {
-        type: 'input',
-        message: "What is the employee's last name?",
-        name: "lastName"
-      },
-
-    ])
-
-    const department= 'Select * from departments'
-    db.query(department, (error, response) => {
+    const allDept='SELECT * FROM departments';
+    db.query(allDept, (error, response)=> {
       if (error) throw error;
-        console.table(response);
-        userQuestions();
+      let deptsArray =[];
+      response.forEach((department) => {deptsArray.push(department.name)});
+      deptsArray.push('New Department');
+      inquirer
+        .prompt([
+          {
+            type: 'list',
+            message: 'To which department would you like to add this role?',
+            name: 'departmentTitle',
+            choices: deptsArray
+          }
+        ])
+        .then((answer) => {
+          if (answer.departmentTitle === 'New Department') {
+            this.addDepartment()
+          } else {
+            addNewRole(response);
+          }
+        })
+    
+
+    const addNewRole = (departmentInfo) => {
+      inquirer.prompt ([
+        {
+           type: 'input',
+           message: "What is the role you are looking to add?",
+          name: "newRole"
+        },
+        {
+          type: 'input',
+          message: "What is the salary of the new role?",
+          name: "newRoleSalary"
+        },
+      ])
+
+      .then((answer) => {
+        let departmentId;
+
+        response.forEach((departments) => {
+          if (departmentInfo.departmentTitle === departments.name) {
+            departmentId = departments.id
+          }
+        })
+        
+        let newRole = 'INSERT INTO roles (title, salary, department_id) VALUES (?,?,?)';
+        let newRoleValues = [answer.newRole, answer.newRoleSalary, departmentId]
+    
+        db.query(newRole, newRoleValues, (error, response) => {
+          if (error) throw error;
+            console.table(response);
+           viewAllRoles();
     })
+  })
+
+}})
   };
 
   //add a new department
@@ -162,7 +179,21 @@ inquirer
     })
   };
 
+  const updateEmployeesRole = () => {
+    inquirer.prompt ([
+      {
+        type: 'input',
+        message: "What is the employee's first name?",
+        name: "firstName"
+      },
+      {
+        type: 'input',
+        message: "What is the employee's last name?",
+        name: "lastName"
+      },
 
+    ])
+  }
 
 
 //mysql query
