@@ -21,6 +21,7 @@ const userQuestions = () => {
           "View All Roles",
           "View All Departments",
           "View Employees by Manager",
+          "View Employees by Department",
           "Add Employee",
           "Add role",
           "Add Department",
@@ -42,6 +43,9 @@ const userQuestions = () => {
       }
       if (response.toDo === "View Employees by Manager") {
         viewEmployeesByManager();
+      }
+      if (response.toDo === "View Employees by Department") {
+        viewEmployeesByDepartment();
       }
       if (response.toDo === "Add Employee") {
         addEmployees();
@@ -104,7 +108,16 @@ const viewEmployeesByManager = () => {
     userQuestions();
   })
 }
-    
+
+const viewEmployeesByDepartment = () => {
+  const query =
+    "SELECT departments.name, roles.title, employees.id, employees.first_name, employees.last_name, FROM employees LEFT JOIN roles on (roles.id = employees.role_id) Left join departments ON (roles.department_id = departments.id)  Order by department.name ";
+  db.query(query, (error, response) => {
+    if (error) throw error;
+    console.table(response);
+    userQuestions();
+  })
+}
 
 //adding to tables
 
