@@ -29,6 +29,7 @@
     Kyle Jocoy: https://github.com/Kylyote/
     Nedda Elsayed: https://github.com/Lven-Nemsy
     AskBCS Royce Ojwilli to help with displaying the employee table and adding a role.
+    Tutor Neil Dhand to help with updating employees and adding new employees.
     
    
    
