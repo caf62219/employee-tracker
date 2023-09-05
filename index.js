@@ -27,7 +27,9 @@ const userQuestions = () => {
           "Add Department",
           "Update Employee Role",
           "Update Employee Manager",
-          "Exit",
+          "Delete Employee",
+          "Delete Role",
+          "Delete Department",                                                                                                                                                                            "Exit",
         ],
       },
     ])
@@ -62,12 +64,21 @@ const userQuestions = () => {
       if (response.toDo === "Update Employee Manager") {
         updateEmployeesManager();
       }
+      if (response.toDo === "Delete Employee") {
+        deleteEmployee();
+      }
+      if (response.toDo === "Delete Role") {
+        deleteRole();
+      }
+      if (response.toDo === "Delete Department") {
+        deleteDepartment();
+      }
       if (response.toDo === "Exit") {
         db.end();
       }
     });
 };
-//Viewing the tables
+//-----------------------------------------------------------------Viewing the tables----------------------------------------------------------------------------------------------------
 //Viewing employees table
 const viewEmployees = () => {
   const employees =
@@ -100,26 +111,27 @@ const viewAllDepartments = () => {
 
 //view employees by manager
 const viewEmployeesByManager = () => {
-  const query =
-    "SELECT CONCAT(manager.first_name, ' ', manager.last_name) AS manager, departments.name, employees.id, employees.first_name, employees.last_name, roles.title, roles.salary,  FROM employees LEFT JOIN employee manager ON employees.manager_id = manager.id JOIN roles ON (employees.role_id = roles.id && employees.manager_id !='null') JOIN departments ON roles.department_id = departments.id ";
-  db.query(query, (error, response) => {
+  const sqlSelect =
+    "SELECT CONCAT(manager.first_name, ' ', manager.last_name) AS manager, departments.name, employees.id, employees.first_name, employees.last_name, roles.title, roles.salary FROM employees LEFT JOIN employees manager ON employees.manager_id = manager.id JOIN roles ON (employees.role_id = roles.id && employees.manager_id !='null') JOIN departments ON roles.department_id = departments.id ";
+  db.query(sqlSelect, (error, response) => {
     if (error) throw error;
     console.table(response);
     userQuestions();
   })
 }
 
+//view employees by department
 const viewEmployeesByDepartment = () => {
-  const query =
-    "SELECT departments.name, roles.title, employees.id, employees.first_name, employees.last_name, FROM employees LEFT JOIN roles on (roles.id = employees.role_id) Left join departments ON (roles.department_id = departments.id)  Order by department.name ";
-  db.query(query, (error, response) => {
+  const sqlSelect =
+    "SELECT departments.name, roles.title, employees.id, employees.first_name, employees.last_name FROM employees LEFT JOIN roles on (roles.id = employees.role_id) Left join departments ON (roles.department_id = departments.id)  Order by departments.name ";
+  db.query(sqlSelect, (error, response) => {
     if (error) throw error;
     console.table(response);
     userQuestions();
   })
 }
 
-//adding to tables
+//----------------------------------------------------------------------------------adding to tables----------------------------------------------------------------------------------
 
 // adds new employees
 const addEmployees = () => {
@@ -303,7 +315,7 @@ const addDepartment = () => {
     });
 };
 
-//UPDATES
+//-----------------------------------------------------------------------------------------------------UPDATES------------------------------------------------------------------------------------
 //update employee role
 const updateEmployeesRole = () => {
   //getting all employees for a list
@@ -364,7 +376,7 @@ const updateEmployeesRole = () => {
         //updating the employee manager and role based on the changes
         .then((response) => {
           db.query(
-            `Update Employees set role_id=${response.employeeNewRole} and manager_id= ${response.newManager} where id = ${response.employeeName}`,
+            `Update employees set role_id=${response.employeeNewRole}, manager_id= ${response.newManager} where id = ${response.employeeName}`,
             (error, response) => {
               if (error) throw error;
               console.log("Successfully updated employee role!");
@@ -376,7 +388,7 @@ const updateEmployeesRole = () => {
   });
   });
 };
-
+//updating employee manager
 const updateEmployeesManager = () => {
   //getting all employees for a list
   const allEmployees = "SELECT * FROM employees";
@@ -419,7 +431,7 @@ const updateEmployeesManager = () => {
         //updating the employee manager  based on the changes
         .then((response) => {
           db.query(
-            `Update Employees set manager_id= ${response.newManager} where id = ${response.employeeName}`,
+            `Update employees set manager_id= ${response.newManager} where id = ${response.employeeName}`,
             (error, response) => {
               if (error) throw error;
               console.log("Successfully updated employee manager!");
@@ -428,6 +440,120 @@ const updateEmployeesManager = () => {
           );
         });
     });
+  });
+};
+
+//------------------------------------------------------------------Deleting-------------------------------------------------------------------------------
+//delete employee
+const deleteEmployee = () => {
+  //getting all employees for a list
+  const allEmployees = "SELECT * FROM employees";
+  db.query(allEmployees, (error, response) => {
+    if (error) throw error;
+    let employeesArray = [];
+    response.forEach((employee) => {
+      employeesArray.push({
+        name: `${employee.first_name} ${employee.last_name}`,
+        value: employee.id,
+      });
+    }); 
+      //prompt questions
+        inquirer
+        .prompt([
+          {
+            type: "list",
+            message: "What employee would you like to delete?",
+            name: "employeeToDelete",
+            choices: employeesArray,
+          }
+        ])
+        //deleting the employee based on the user request
+        .then((response) => {
+          db.query(
+            `Delete from employees where id = ${response.employeeToDelete}`,
+            (error, response) => {
+              if (error) throw error;
+              console.log("Successfully removed employee!");
+              viewEmployees();
+            }
+          );
+        });
+   
+  });
+};
+
+//delete role
+const deleteRole = () => {
+  //getting all roles for a list
+  const allRoles = "SELECT * FROM roles";
+  db.query(allRoles, (error, response) => {
+    if (error) throw error;
+    let rolesArray = [];
+    response.forEach((role) => {
+      rolesArray.push({
+        name: role.title,
+        value: role.id
+      });
+    }); 
+      //prompt questions
+        inquirer
+        .prompt([
+          {
+            type: "list",
+            message: "What role would you like to delete?",
+            name: "roleToDelete",
+            choices: rolesArray,
+          }
+        ])
+        //deleting the role based on the user request
+        .then((response) => {
+          db.query(
+            `Delete from roles where id = ${response.roleToDelete}`,
+            (error, response) => {
+              if (error) throw error;
+              console.log("Successfully removed role!");
+              viewAllRoles();
+            }
+          );
+        });
+   
+  });
+};
+//delete department
+const deleteDepartment = () => {
+  //getting all roles for a list
+  const allDepartments = "SELECT * FROM departments";
+  db.query(allDepartments, (error, response) => {
+    if (error) throw error;
+    let departmentsArray = [];
+    response.forEach((department) => {
+      departmentsArray.push({
+        name: department.name,
+        value: department.id
+      });
+    }); 
+      //prompt questions
+        inquirer
+        .prompt([
+          {
+            type: "list",
+            message: "What department would you like to delete?",
+            name: "departmentToDelete",
+            choices: departmentsArray,
+          }
+        ])
+        //deleting the department based on the user request
+        .then((response) => {
+          db.query(
+            `Delete from departments where id = ${response.departmentToDelete}`,
+            (error, response) => {
+              if (error) throw error;
+              console.log("Successfully removed department!");
+              viewAllDepartments();
+            }
+          );
+        });
+   
   });
 };
 //mysql query
