@@ -22,6 +22,7 @@ const userQuestions = () => {
           "View All Departments",
           "View Employees by Manager",
           "View Employees by Department",
+          "View Budget by Department",
           "Add Employee",
           "Add role",
           "Add Department",
@@ -29,51 +30,40 @@ const userQuestions = () => {
           "Update Employee Manager",
           "Delete Employee",
           "Delete Role",
-          "Delete Department",                                                                                                                                                                            "Exit",
+          "Delete Department",                          "Exit"
         ],
       },
     ])
     .then((response) => {
       if (response.toDo === "View Employees") {
         viewEmployees();
-      }
-      if (response.toDo === "View All Roles") {
+      } else if (response.toDo === "View All Roles") {
         viewAllRoles();
-      }
-      if (response.toDo === "View All Departments") {
+      } else if (response.toDo === "View All Departments") {
         viewAllDepartments();
-      }
-      if (response.toDo === "View Employees by Manager") {
+      } else if (response.toDo === "View Employees by Manager") {
         viewEmployeesByManager();
-      }
-      if (response.toDo === "View Employees by Department") {
+      } else if (response.toDo === "View Employees by Department") {
         viewEmployeesByDepartment();
-      }
-      if (response.toDo === "Add Employee") {
+      } else if (response.toDo ==="View Budget by Department") {
+        viewBudgetByDepartment();
+      } else if (response.toDo === "Add Employee") {
         addEmployees();
-      }
-      if (response.toDo === "Add role") {
+      } else if (response.toDo === "Add role") {
         addRole();
-      }
-      if (response.toDo === "Add Department") {
+      } else if (response.toDo === "Add Department") {
         addDepartment();
-      }
-      if (response.toDo === "Update Employee Role") {
+      } else if (response.toDo === "Update Employee Role") {
         updateEmployeesRole();
-      }
-      if (response.toDo === "Update Employee Manager") {
+      } else if (response.toDo === "Update Employee Manager") {
         updateEmployeesManager();
-      }
-      if (response.toDo === "Delete Employee") {
+      } else if (response.toDo === "Delete Employee") {
         deleteEmployee();
-      }
-      if (response.toDo === "Delete Role") {
+      } else if (response.toDo === "Delete Role") {
         deleteRole();
-      }
-      if (response.toDo === "Delete Department") {
+      } else if (response.toDo === "Delete Department") {
         deleteDepartment();
-      }
-      if (response.toDo === "Exit") {
+      } else if (response.toDo === "Exit") {
         db.end();
       }
     });
@@ -128,6 +118,40 @@ const viewEmployeesByDepartment = () => {
     if (error) throw error;
     console.table(response);
     userQuestions();
+  })
+}
+
+//view budget by department
+
+const viewBudgetByDepartment= () => {
+  const allDepartments = "SELECT * FROM departments";
+  db.query(allDepartments, (error, response) => {
+    if (error) throw error;
+    let departmentsArray = [];
+    response.forEach((department) => {
+      departmentsArray.push({
+        name: department.name,
+        value: department.id,
+      });
+    });
+    
+    inquirer
+      .prompt([
+        {
+          type: "list",
+          message: "Which department do you want the budget for?",
+          name: "departmentBudget",
+          choices: departmentsArray,
+        },
+      ])
+      .then((response)=> {
+        const sqlSelect =`departments.name AS department, SUM(roles.salary) AS budget FROM  departments INNER JOIN roles ON departments.id= roles.department_id  INNER JOIN employees on roles.id = employees.role_id WHERE name = response.departmentBudget`;
+        db.query(sqlSelect, (error, response) => {
+        if (error) throw error;
+          console.table(response);
+          userQuestions();
+  })
+})
   })
 }
 
