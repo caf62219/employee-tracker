@@ -11,8 +11,8 @@
     -In order to install this project the user must go to the terminal and type in "node index.js" then follow the prompts on the screen.
     -To exit the application the user will go to the exit option.
 
-    -Follow the following URL to the video that demonstrates installation and usage: 
-    
+    -Follow the following URL to the video that demonstrates installation and usage: https://drive.google.com/file/d/1kQAU_r52BqDq88r989nm0ccrnEBsPY3e/view
+        
     
 # Usage
     
