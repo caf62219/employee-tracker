@@ -32,10 +32,12 @@
     Kyle Jocoy: https://github.com/Kylyote/
     Nedda Elsayed: https://github.com/Lven-Nemsy
     AskBCS Royce Ojwilli to help with displaying the employee table and adding a role.
+    AskBCS Tyler Alexander to help with viewing the budget by department
     Tutor Neil Dhand to help with updating employees and adding new employees.
-    
-   
-   
+    Phind.com
+    https://www.w3schools.com/sql/
+
+      
 # License
     MIT
 

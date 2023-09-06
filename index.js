@@ -2,6 +2,22 @@ const mysql = require("mysql2");
 const inquirer = require("inquirer");
 const db = require("./config/connection.js");
 
+console.log(`
+███████╗███╗   ███╗██████╗ ██╗      ██████╗ ██╗   ██╗███████╗███████╗
+██╔════╝████╗ ████║██╔══██╗██║     ██╔═══██╗╚██╗ ██╔╝██╔════╝██╔════╝
+█████╗  ██╔████╔██║██████╔╝██║     ██║   ██║ ╚████╔╝ █████╗  █████╗  
+██╔══╝  ██║╚██╔╝██║██╔═══╝ ██║     ██║   ██║  ╚██╔╝  ██╔══╝  ██╔══╝  
+███████╗██║ ╚═╝ ██║██║     ███████╗╚██████╔╝   ██║   ███████╗███████╗
+╚══════╝╚═╝     ╚═╝╚═╝     ╚══════╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
+                                                                     
+    ████████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗         
+    ╚══██╔══╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗        
+       ██║   ██████╔╝███████║██║     █████╔╝ █████╗  ██████╔╝        
+       ██║   ██╔══██╗██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗        
+       ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║        
+       ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝        
+                                                                
+  `)
 //database connection
 db.connect((error) => {
   if (error) throw error;
@@ -30,7 +46,8 @@ const userQuestions = () => {
           "Update Employee Manager",
           "Delete Employee",
           "Delete Role",
-          "Delete Department",                          "Exit"
+          "Delete Department",                          
+          "Exit"
         ],
       },
     ])
@@ -79,6 +96,7 @@ const viewEmployees = () => {
     userQuestions();
   });
 };
+
 //Viewing the roles table
 const viewAllRoles = () => {
   const role =
@@ -89,6 +107,7 @@ const viewAllRoles = () => {
     userQuestions();
   });
 };
+
 //viewing the departments table
 const viewAllDepartments = () => {
   const department = "Select * from departments";
@@ -122,8 +141,8 @@ const viewEmployeesByDepartment = () => {
 }
 
 //view budget by department
-
 const viewBudgetByDepartment= () => {
+  //getting a list of all departments
   const allDepartments = "SELECT * FROM departments";
   db.query(allDepartments, (error, response) => {
     if (error) throw error;
@@ -134,8 +153,8 @@ const viewBudgetByDepartment= () => {
         value: department.id,
       });
     });
-    
     inquirer
+      //asking the user which department they want the budget for
       .prompt([
         {
           type: "list",
@@ -144,11 +163,12 @@ const viewBudgetByDepartment= () => {
           choices: departmentsArray,
         },
       ])
+      //based on response show a table with the deparmtent and the budget
       .then((response)=> {
-        const sqlSelect =`departments.name AS department, SUM(roles.salary) AS budget FROM  departments INNER JOIN roles ON departments.id= roles.department_id  INNER JOIN employees on roles.id = employees.role_id WHERE name = response.departmentBudget`;
-        db.query(sqlSelect, (error, response) => {
+        const sqlSelect =`Select departments.name AS department, SUM(roles.salary) AS budget FROM  departments INNER JOIN roles ON departments.id= roles.department_id  INNER JOIN employees on roles.id = employees.role_id WHERE departments.id = ?`;
+        db.query(sqlSelect, [response.departmentBudget],(error, budgetResponse) => {
         if (error) throw error;
-          console.table(response);
+          console.table(budgetResponse);
           userQuestions();
   })
 })
@@ -174,6 +194,7 @@ const addEmployees = () => {
       name: "New Role",
       value: "New Role",
     });
+    //questions for user about the new role
     inquirer
       .prompt([
         {
@@ -192,6 +213,7 @@ const addEmployees = () => {
       });
 //function to add the new employee
     const addNewEmployee = (answer) => {
+      // selecting an array of all managers
       const allManagers = "SELECT * FROM employees";
       db.query(allManagers, (error, response) => {
         if (error) throw error;
@@ -203,6 +225,7 @@ const addEmployees = () => {
           });
         });
         inquirer
+          //questions for the user about the employees name and manager
           .prompt([
             {
               type: "input",
@@ -231,7 +254,6 @@ const addEmployees = () => {
               answer.roleTitle,
               response.managerName,
             ];
-
             db.query(newEmployee, newEmployeeValues, (error, response) => {
               if (error) throw error;
               console.log('New Employee Added');
@@ -251,10 +273,13 @@ const addRole = () => {
     if (error) throw error;
     let deptsArray = [];
     response.forEach((department) => {
-      deptsArray.push(department.name);
+      deptsArray.push({
+        name: department.name,
+        value: department.id});
     });
     deptsArray.push("New Department");
     inquirer
+    //questions for user about which deparment is the new role in
       .prompt([
         {
           type: "list",
@@ -265,6 +290,7 @@ const addRole = () => {
       ])
       //allows the user to add a new department if needed
       .then((answer) => {
+       //brings user back to the add department function if they chose new department
         if (answer.departmentTitle === "New Department") {
           this.addDepartment();
         } else {
@@ -272,7 +298,7 @@ const addRole = () => {
         }
       });
 //function for adding a new role
-    const addNewRole = (departmentInfo) => {
+    const addNewRole = (answer) => {
       inquirer
         .prompt([
           {
@@ -287,21 +313,13 @@ const addRole = () => {
           },
         ])
 //then statement that puts all the new values into the roles table
-        .then((answer) => {
-          let departmentId;
+        .then((response) => {
 
-          response.forEach((departments) => {
-            if (departmentInfo.departmentTitle === departments.name) {
-              departmentId = departments.id;
-            }
-          });
-
-          let newRole =
-            "INSERT INTO roles (title, salary, department_id) VALUES (?,?,?)";
+          let newRole = "INSERT INTO roles (title, salary, department_id) VALUES (?,?,?)";
           let newRoleValues = [
-            answer.newRole,
-            answer.newRoleSalary,
-            departmentId,
+            response.newRole,
+            response.newRoleSalary,
+            answer.departmentTitle,
           ];
 
           db.query(newRole, newRoleValues, (error, response) => {
@@ -543,6 +561,7 @@ const deleteRole = () => {
    
   });
 };
+
 //delete department
 const deleteDepartment = () => {
   //getting all roles for a list
@@ -580,13 +599,3 @@ const deleteDepartment = () => {
    
   });
 };
-//mysql query
-//counts the number of instock from favorite books the out of stock
-// db.query('SELECT in_stock COUNT(id) AS total_count FROM favorite_books GROUP BY in_stock', function (err, results) {
-//   console.log(results);
-// });
-
-//gives the sum quantity,  the max quanity and min quantity and the average quanity per section.  This is done in the order listed
-// db.query('SELECT section, SUM(quantity) AS total_in_section, MAX(quantity) AS max_quantity, MIN(quantity) AS min_quantity, AVG(quantity) AS avg_quantity FROM favorite_books GROUP BY section', function (err, results) {
-//   console.log(results);
-// });
